@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toko Belajar Santai - Uji Coba</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .product-card h3 {
+            margin-top: 0;
+            color: #0056b3;
+        }
+        .product-card p {
+            margin-bottom: 5px;
+        }
+        .product-card button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .product-card button:hover {
+            background-color: #0056b3;
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            animation-name: animatetop;
+            animation-duration: 0.4s;
+            border-radius: 8px;
+            text-align: center;
+        }
+        /* Add Animation */
+        @keyframes animatetop {
+            from {top: -300px; opacity: 0}
+            to {top: 0; opacity: 1}
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        #qrCodeImage {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 15px auto;
+            border: 1px solid #eee;
+            padding: 5px;
+        }
+        #transactionIdDisplay, #paymentStatusResult {
+            font-weight: bold;
+            color: #0056b3;
+            word-break: break-all;
+        }
+        #finalContent {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px dashed #28a745;
+            background-color: #e6ffe6;
+            border-radius: 5px;
+            display: none; /* Hidden initially */
+        }
+        #finalContent a {
+            color: #28a745;
+            font-weight: bold;
+        }
+        #checkStatusSection {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        #checkStatusSection input[type="text"] {
+            width: calc(100% - 120px);
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #checkStatusSection button {
+            padding: 10px 15px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #checkStatusSection button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Toko Belajar Santai</h1>
+        <p>Pilih produk yang ingin kamu beli untuk uji coba pembayaran QRIS!</p>
+
+        <div class="product-card">
+            <div>
+                <h3>Kelas Ngoding Dasar</h3>
+                <p>Harga: Rp 1.500</p>
+            </div>
+            <button onclick="beliProduk('Kelas Ngoding Dasar', 1500, 'https://chat.whatsapp.com/KelasNgodingDasar')">Beli Sekarang</button>
+        </div>
+
+        <div class="product-card">
+            <div>
+                <h3>Ebook JavaScript Pemula</h3>
+                <p>Harga: Rp 1.000</p>
+            </div>
+            <button onclick="beliProduk('Ebook JavaScript Pemula', 1000, 'https://t.me/EbookJSPemula')">Beli Sekarang</button>
+        </div>
+
+        <div class="modal" id="paymentModal">
+            <div class="modal-content">
+                <span class="close-button" onclick="closeModal()">&times;</span>
+                <h2 id="modalTitle">Proses Pembayaran QRIS</h2>
+                <div id="paymentLoading">Loading QRIS...</div>
+                <img id="qrCodeImage" src="" alt="QRIS Code" style="display: none;">
+                <p id="qrInstructions" style="display: none;">Scan QRIS di atas untuk menyelesaikan pembayaran.</p>
+                <p id="transactionIdText" style="display: none;">ID Transaksi Anda: <span id="transactionIdDisplay"></span></p>
+                <p id="paymentStatusText" style="display: none;">Status Pembayaran: <span id="paymentStatusResult">Menunggu...</span></p>
+                
+                <div id="finalContent">
+                    <p>Pembayaran Berhasil! 🎉</p>
+                    <p>Silakan bergabung ke grup/akses data Anda:</p>
+                    <p><a id="accessLink" href="#" target="_blank">Klik di sini untuk akses!</a></p>
+                    <p>Simpan ID Transaksi Anda ini jika sewaktu-waktu butuh akses lagi:</p>
+                    <p><span id="finalTransactionIdDisplay" style="font-weight: bold; color: #007bff; word-break: break-all;"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="checkStatusSection">
+            <h2>Cek Status Pembayaran</h2>
+            <p>Jika Anda tidak sengaja menutup window, masukkan ID Transaksi Anda di sini:</p>
+            <input type="text" id="inputTransactionId" placeholder="Masukkan ID Transaksi">
+            <button onclick="checkPaymentStatus()">Cek Status</button>
+            <div id="checkedStatusResult" style="margin-top: 15px;"></div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentTransactionId = null;
+        let paymentCheckInterval = null;
+        let expectedLink = '';
+
+        const paymentModal = document.getElementById('paymentModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const paymentLoading = document.getElementById('paymentLoading');
+        const qrCodeImage = document.getElementById('qrCodeImage');
+        const qrInstructions = document.getElementById('qrInstructions');
+        const transactionIdText = document.getElementById('transactionIdText');
+        const transactionIdDisplay = document.getElementById('transactionIdDisplay');
+        const paymentStatusText = document.getElementById('paymentStatusText');
+        const paymentStatusResult = document.getElementById('paymentStatusResult');
+        const finalContent = document.getElementById('finalContent');
+        const accessLink = document.getElementById('accessLink');
+        const finalTransactionIdDisplay = document.getElementById('finalTransactionIdDisplay');
+        const checkedStatusResult = document.getElementById('checkedStatusResult');
+
+        function openModal() {
+            paymentModal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            paymentModal.style.display = 'none';
+            clearInterval(paymentCheckInterval); // Stop checking when closed
+            resetModal();
+        }
+
+        function resetModal() {
+            modalTitle.innerText = 'Proses Pembayaran QRIS';
+            paymentLoading.style.display = 'block';
+            qrCodeImage.style.display = 'none';
+            qrCodeImage.src = '';
+            qrInstructions.style.display = 'none';
+            transactionIdText.style.display = 'none';
+            transactionIdDisplay.innerText = '';
+            paymentStatusText.style.display = 'none';
+            paymentStatusResult.innerText = 'Menunggu...';
+            finalContent.style.display = 'none';
+            accessLink.href = '#';
+            accessLink.innerText = '';
+            finalTransactionIdDisplay.innerText = '';
+            checkedStatusResult.innerHTML = ''; // Clear status check result
+        }
+
+        async function beliProduk(productName, price, link) {
+            resetModal();
+            openModal();
+            modalTitle.innerText = `Pembelian: ${productName}`;
+            expectedLink = link; // Simpan link yang diharapkan
+
+            try {
+                // Panggil backend untuk membuat QRIS
+                const response = await fetch('process_payment.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `product_name=${encodeURIComponent(productName)}&price=${price}&link=${encodeURIComponent(link)}`
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    paymentLoading.style.display = 'none';
+                    [cite_start]qrCodeImage.src = data.qr_image_url; [cite: 83, 86]
+                    qrCodeImage.style.display = 'block';
+                    qrInstructions.style.display = 'block';
+                    transactionIdText.style.display = 'block';
+                    transactionIdDisplay.innerText = data.atlantic_transaction_id; [cite_start]// Ini ID transaksi dari API Atlantic [cite: 83, 84]
+                    paymentStatusText.style.display = 'block';
+                    currentTransactionId = data.atlantic_transaction_id;
+
+                    // Mulai polling status pembayaran
+                    paymentCheckInterval = setInterval(checkPaymentStatusLoop, 3000); // Cek setiap 3 detik
+                } else {
+                    paymentLoading.innerText = 'Gagal membuat QRIS: ' + data.message;
+                    console.error('Error creating QRIS:', data.message);
+                }
+            } catch (error) {
+                paymentLoading.innerText = 'Terjadi kesalahan: ' + error.message;
+                console.error('Fetch error:', error);
+            }
+        }
+
+        async function checkPaymentStatusLoop() {
+            if (!currentTransactionId) {
+                clearInterval(paymentCheckInterval);
+                return;
+            }
+
+            try {
+                const response = await fetch('check_payment.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `transaction_id=${currentTransactionId}`
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    [cite_start]paymentStatusResult.innerText = data.payment_status; [cite: 113, 116]
+                    [cite_start]if (data.payment_status === 'success') { [cite: 113, 116]
+                        clearInterval(paymentCheckInterval);
+                        modalTitle.innerText = 'Pembayaran Berhasil!';
+                        qrCodeImage.style.display = 'none';
+                        qrInstructions.style.display = 'none';
+                        paymentStatusText.style.display = 'none';
+                        transactionIdText.style.display = 'none';
+                        finalContent.style.display = 'block';
+                        accessLink.href = data.access_link; [cite_start]// Ambil link dari backend [cite: 113, 116]
+                        accessLink.innerText = data.access_link;
+                        finalTransactionIdDisplay.innerText = currentTransactionId;
+                    [cite_start]} else if (data.payment_status === 'expired' || data.payment_status === 'failed') { [cite: 113, 116]
+                        clearInterval(paymentCheckInterval);
+                        paymentStatusResult.innerText = `Pembayaran ${data.payment_status}. [cite_start]Silakan coba lagi.`; [cite: 113, 116]
+                    }
+                } else {
+                    console.error('Error checking status:', data.message);
+                    paymentStatusResult.innerText = 'Gagal cek status.';
+                }
+            } catch (error) {
+                console.error('Fetch error during status check:', error);
+                paymentStatusResult.innerText = 'Error saat cek status.';
+            }
+        }
+
+        async function checkPaymentStatus() {
+            const inputId = document.getElementById('inputTransactionId').value;
+            checkedStatusResult.innerHTML = '<p>Mengecek status...</p>';
+
+            try {
+                const response = await fetch('check_payment.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `transaction_id=${inputId}`
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    let resultHtml = `<p>ID Transaksi: <strong>${inputId}</strong></p>`;
+                    [cite_start]resultHtml += `<p>Status Pembayaran: <strong style="color: ${data.payment_status === 'success' ? 'green' : 'orange'};">${data.payment_status}</strong></p>`; [cite: 113, 116]
+                    
+                    [cite_start]if (data.payment_status === 'success') { [cite: 113, 116]
+                        resultHtml += `<p>Link Akses Anda: <a href="${data.access_link}" target="_blank">${data.access_link}</a></p>`; [cite_start]// [cite: 113, 116]
+                    } else {
+                        resultHtml += `<p>Jika belum membayar, silakan coba buat transaksi baru.</p>`;
+                    }
+                    checkedStatusResult.innerHTML = resultHtml;
+                } else {
+                    checkedStatusResult.innerHTML = `<p style="color: red;">Error: ${data.message}</p>`;
+                }
+            } catch (error) {
+                checkedStatusResult.innerHTML = `<p style="color: red;">Terjadi kesalahan saat memeriksa status: ${error.message}</p>`;
+                console.error('Fetch error for manual status check:', error);
+            }
+        }
+    </script>
+</body>
+</html>
